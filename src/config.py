@@ -1,0 +1,4 @@
+APP_NAME = "KT News Engine"
+
+NEWS_UPDATE_INTERVAL = 180  # 3 минуты
+TELEGRAM_INTERVAL = 1200    # 20 минут

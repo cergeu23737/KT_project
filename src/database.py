@@ -1,71 +1,97 @@
-import sqlite3
+import json
 from pathlib import Path
 
 
-DB_PATH = Path("data/news.db")
+DB_PATH = Path("data/news.json")
 
 
 def init_db():
     DB_PATH.parent.mkdir(exist_ok=True)
 
-    with sqlite3.connect(DB_PATH) as db:
-        db.execute("""
-            CREATE TABLE IF NOT EXISTS news (
-                id INTEGER PRIMARY KEY AUTOINCREMENT,
-                title TEXT NOT NULL,
-                url TEXT NOT NULL UNIQUE,
-                source TEXT NOT NULL,
-                status TEXT NOT NULL DEFAULT 'new',
-                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-            )
-        """)
+    if not DB_PATH.exists():
+        DB_PATH.write_text(
+            json.dumps(
+                {
+                    "news": []
+                },
+                ensure_ascii=False,
+                indent=2
+            ),
+            encoding="utf-8"
+        )
 
-        db.commit()
+
+def load_db():
+    init_db()
+
+    return json.loads(
+        DB_PATH.read_text(encoding="utf-8")
+    )
+
+
+def save_db(data):
+    DB_PATH.write_text(
+        json.dumps(
+            data,
+            ensure_ascii=False,
+            indent=2
+        ),
+        encoding="utf-8"
+    )
 
 
 def news_exists(url):
-    with sqlite3.connect(DB_PATH) as db:
-        result = db.execute(
-            "SELECT 1 FROM news WHERE url = ?",
-            (url,)
-        ).fetchone()
+    data = load_db()
 
-        return result is not None
+    return any(
+        news["url"] == url
+        for news in data["news"]
+    )
 
 
 def save_news(title, url, source):
-    with sqlite3.connect(DB_PATH) as db:
-        db.execute(
-            """
-            INSERT OR IGNORE INTO news
-            (title, url, source)
-            VALUES (?, ?, ?)
-            """,
-            (title, url, source)
-        )
+    data = load_db()
 
-        db.commit()
+    if news_exists(url):
+        return
+
+    data["news"].append(
+        {
+            "title": title,
+            "url": url,
+            "source": source,
+            "status": "new"
+        }
+    )
+
+    save_db(data)
 
 
 def get_new_news(limit=10):
-    with sqlite3.connect(DB_PATH) as db:
-        return db.execute(
-            """
-            SELECT id, title, url, source
-            FROM news
-            WHERE status = 'new'
-            ORDER BY id ASC
-            LIMIT ?
-            """,
-            (limit,)
-        ).fetchall()
+    data = load_db()
+
+    news = [
+        item
+        for item in data["news"]
+        if item["status"] == "new"
+    ]
+
+    return [
+        (
+            index,
+            item["title"],
+            item["url"],
+            item["source"]
+        )
+        for index, item in enumerate(data["news"])
+        if item["status"] == "new"
+    ][:limit]
 
 
 def mark_as_sent(news_id):
-    with sqlite3.connect(DB_PATH) as db:
-        db.execute(
-            "UPDATE news SET status = 'sent' WHERE id = ?",
-            (news_id,)
-        )
+    data = load_db()
 
-        db.commit()
+    if 0 <= news_id < len(data["news"]):
+        data["news"][news_id]["status"] = "sent"
+
+    save_db(data)

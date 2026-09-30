@@ -11,19 +11,30 @@ def collect_news():
     for source in SOURCES:
         print(f"\n=== {source['name']} ===")
 
-        feed = feedparser.parse(source["url"])
+        try:
+            feed = feedparser.parse(source["url"])
 
-        for item in feed.entries[:5]:
-            title = item.title
-            url = item.link
-
-            if news_exists(url):
-                print(f"УЖЕ ЕСТЬ: {title}")
+            if not feed.entries:
+                print("НЕТ НОВОСТЕЙ ИЛИ RSS НЕДОСТУПЕН")
                 continue
 
-            save_news(title, url, source["name"])
+            for item in feed.entries[:5]:
+                title = getattr(item, "title", "").strip()
+                url = getattr(item, "link", "").strip()
 
-            print(f"ДОБАВЛЕНО В ОЧЕРЕДЬ: {title}")
+                if not title or not url:
+                    continue
+
+                if news_exists(url):
+                    print(f"УЖЕ ЕСТЬ: {title}")
+                    continue
+
+                save_news(title, url, source["name"])
+
+                print(f"ДОБАВЛЕНО В ОЧЕРЕДЬ: {title}")
+
+        except Exception as error:
+            print(f"ОШИБКА ИСТОЧНИКА: {error}")
 
 
 if __name__ == "__main__":

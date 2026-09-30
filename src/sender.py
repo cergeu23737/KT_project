@@ -1,5 +1,6 @@
 from database import init_db, get_new_news, mark_as_sent
 from telegram import send_message
+from translator import translate_to_russian
 
 
 def send_news_queue():
@@ -12,15 +13,17 @@ def send_news_queue():
         return
 
     for news_id, title, url, source in news_list:
+        translated_title = translate_to_russian(title)
+
         message = (
-            f"📰 {title}\n\n"
+            f"📰 {translated_title}\n\n"
             f"Источник: {source}"
         )
 
         send_message(message)
         mark_as_sent(news_id)
 
-        print(f"ОТПРАВЛЕНО: {title}")
+        print(f"ОТПРАВЛЕНО: {translated_title}")
 
 
 if __name__ == "__main__":

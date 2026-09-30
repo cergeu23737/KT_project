@@ -1,34 +1,24 @@
-import os
-import requests
-
-
-TRANSLATE_URL = os.getenv(
-    "TRANSLATE_URL",
-    "https://libretranslate.com/translate"
-)
-
-TRANSLATE_API_KEY = os.getenv("TRANSLATE_API_KEY")
+from deep_translator import GoogleTranslator
 
 
 def translate_to_russian(text):
-    data = {
-        "q": text,
-        "source": "auto",
-        "target": "ru",
-        "format": "text",
-    }
+    text = text.strip()
 
-    if TRANSLATE_API_KEY:
-        data["api_key"] = TRANSLATE_API_KEY
+    if not text:
+        return text
 
-    response = requests.post(
-        TRANSLATE_URL,
-        json=data,
-        timeout=20,
-    )
+    try:
+        translator = GoogleTranslator(
+            source="auto",
+            target="ru"
+        )
 
-    response.raise_for_status()
+        translated = translator.translate(text)
 
-    result = response.json()
+        if translated:
+            return translated
 
-    return result["translatedText"]
+    except Exception as error:
+        print(f"ОШИБКА ПЕРЕВОДА: {error}")
+
+    return text

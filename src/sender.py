@@ -1,6 +1,6 @@
 from database import init_db, get_new_news, mark_as_sent
 from telegram import send_message
-from translator import translate_to_russian
+from translator import translate_batch_to_russian
 
 
 def send_news_queue():
@@ -12,18 +12,40 @@ def send_news_queue():
         print("Очередь пуста.")
         return
 
-    for news_id, title, url, source in news_list:
-        translated_title = translate_to_russian(title)
+    titles = [
+        item[1]
+        for item in news_list
+    ]
 
-        message = (
-            f"📰 {translated_title}\n\n"
+    translated_titles = translate_batch_to_russian(titles)
+
+    messages = [
+        "📰 НОВОСТИ",
+        ""
+    ]
+
+    for number, (item, translated_title) in enumerate(
+        zip(news_list, translated_titles),
+        start=1
+    ):
+        news_id, title, url, source = item
+
+        messages.append(
+            f"{number}. {translated_title}\n"
             f"Источник: {source}"
         )
 
-        send_message(message)
+        messages.append("")
+
+    message = "\n".join(messages).strip()
+
+    send_message(message)
+
+    for item in news_list:
+        news_id = item[0]
         mark_as_sent(news_id)
 
-        print(f"ОТПРАВЛЕНО: {translated_title}")
+    print(f"ОТПРАВЛЕНО ОДНИМ СООБЩЕНИЕМ: {len(news_list)} новостей")
 
 
 if __name__ == "__main__":

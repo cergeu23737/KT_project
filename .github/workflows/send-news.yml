@@ -1,0 +1,37 @@
+name: KT News Sender
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  send:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Get repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Send news
+        env:
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+        run: python src/sender.py
+
+      - name: Save news database
+        run: |
+          git config user.name "KT News Engine"
+          git config user.email "kt-news-engine@users.noreply.github.com"
+          git add data/news.json
+          git diff --cached --quiet || git commit -m "Update news queue"
+          git push

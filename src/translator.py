@@ -15,6 +15,8 @@ def translate_to_russian(text):
 
         translated = translator.translate(text)
 
+        print(f"ПЕРЕВОД: {text} -> {translated}")
+
         if translated:
             return translated
 

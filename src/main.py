@@ -2,10 +2,9 @@ import feedparser
 
 from sources import SOURCES
 from database import init_db, news_exists, save_news
-from telegram import send_message
 
 
-def get_news():
+def collect_news():
     init_db()
 
     for source in SOURCES:
@@ -21,17 +20,10 @@ def get_news():
                 print(f"УЖЕ ЕСТЬ: {title}")
                 continue
 
-            message = (
-                f"📰 {title}\n\n"
-                f"Источник: {source['name']}\n"
-                f"🔗 {url}"
-            )
+            save_news(title, url, source["name"])
 
-            send_message(message)
-            save_news(title, url)
-
-            print(f"ОТПРАВЛЕНО: {title}")
+            print(f"ДОБАВЛЕНО В ОЧЕРЕДЬ: {title}")
 
 
 if __name__ == "__main__":
-    get_news()
+    collect_news()

@@ -1,11 +1,9 @@
 from deep_translator import GoogleTranslator
 
 
-def translate_to_russian(text):
-    text = text.strip()
-
-    if not text:
-        return text
+def translate_batch_to_russian(texts):
+    if not texts:
+        return []
 
     try:
         translator = GoogleTranslator(
@@ -13,14 +11,13 @@ def translate_to_russian(text):
             target="ru"
         )
 
-        translated = translator.translate(text)
+        translated = translator.translate_batch(texts)
 
-        print(f"ПЕРЕВОД: {text} -> {translated}")
+        print("ПЕРЕВОД ВЫПОЛНЕН")
 
-        if translated:
-            return translated
+        return translated
 
     except Exception as error:
         print(f"ОШИБКА ПЕРЕВОДА: {error}")
 
-    return text
+        return texts

@@ -2,6 +2,7 @@ import feedparser
 
 from sources import SOURCES
 from database import init_db, news_exists, save_news
+from version import check_version
 
 
 def collect_news():
@@ -26,4 +27,5 @@ def collect_news():
 
 
 if __name__ == "__main__":
+    check_version()
     collect_news()

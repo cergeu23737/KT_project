@@ -14,8 +14,7 @@ def send_news_queue():
     for news_id, title, url, source in news_list:
         message = (
             f"📰 {title}\n\n"
-            f"Источник: {source}\n"
-            f"🔗 {url}"
+            f"Источник: {source}"
         )
 
         send_message(message)
